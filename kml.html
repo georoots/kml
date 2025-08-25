@@ -1,0 +1,1308 @@
+<!-- 
+GNU GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2025 GeoTrace
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KML - GeoRoots</title>
+    <style>
+        /* CSS Variables for consistent color scheme */
+        :root {
+            --primary-color: #1b4332;
+            --secondary-color: #40916c;
+            --accent-color: #efffef;
+            --dark-color: #1b4332;
+            --light-color: #f8f9fa;
+            --danger-color: #dc6575;
+            --confirm-color: #40916c;
+            --text-color: #333;
+            --border-color: #e9ecef;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            
+            /* Gray Scale */
+            --gray-light: #f1f4f2;
+            --gray-medium: #6c757d;
+            --gray-dark: #495057;
+            --gray-border: #e9ecef;
+            --gray-input: #ddd;
+            
+            /* Basic Colors */
+            --white: #ffffff;
+            --black: #000000;
+            
+            /* Status Colors */
+            --error-bg: #f8d7da;
+            --error-border: #f5c6cb;
+            --error-text: #721c24;
+            --success-bg: #d4edda;
+            --success-border: #c3e6cb;
+            --success-text: #155724;
+            --warning-bg: #fff3cd;
+            --warning-border: #ffeaa7;
+            --warning-text: #856404;
+            
+            /* Overlay and UI Colors */
+            --modal-overlay: rgba(0, 0, 0, 0.7);
+            --loading-overlay: rgba(0, 0, 0, 0.6);
+            --spinner-bg: #f3f3f3;
+            
+            /* Hover States */
+            --danger-hover: #d14a5a;
+            --success-hover: #4a9f6b;
+            --secondary-hover: #2d5a3d;
+            
+            /* Special Elements */
+            --drop-border: #ccc;
+        }
+
+        /* Language Selector Styles */
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .language-selector select {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .language-selector select option {
+            background: var(--white);
+            color: var(--text-color);
+        }
+
+        .language-selector label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background: var(--light-color);
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px var(--shadow-color);
+            overflow: hidden;
+        }
+
+        .content-wrapper {
+            max-width: none;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .header {
+            background: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .header .small-print {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 8px;
+            line-height: 1.3;
+        }
+
+        .header .small-print a {
+            color: var(--white);
+            transition: color 0.3s ease;
+        }
+
+        .main-content {
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: visible;
+            min-height: auto;
+            min-width: auto;
+            width: 100%;
+            max-width: none;
+        }
+
+        .upload-area {
+            padding: 60px 40px;
+            text-align: center;
+            border: 2px dashed var(--drop-border);
+            margin: 40px;
+            border-radius: 15px;
+            background: var(--gray-light);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: calc(100% - 80px);
+            max-width: none;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--gray-medium);
+            background: var(--gray-border);
+            transform: translateY(-2px);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--gray-medium);
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            color: var(--gray-dark);
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: var(--confirm-color);
+            color: var(--white);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(64, 145, 108, 0.2);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            background: var(--success-hover);
+            box-shadow: 0 6px 20px rgba(64, 145, 108, 0.3);
+        }
+
+        .processing-view {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--gray-dark);
+            border-bottom: 2px solid var(--gray-border);
+            padding-bottom: 10px;
+        }
+		
+
+
+        .global-fields {
+            background: var(--gray-light);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-medium);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--confirm-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: var(--gray-dark);
+        }
+
+        .field.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .field.disabled input {
+            background-color: var(--gray-light);
+            cursor: not-allowed;
+        }
+
+        .field-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray-dark);
+        }
+
+        .field input {
+            padding: 12px 16px;
+            border: 1px solid var(--gray-input);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: var(--white);
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: var(--gray-medium);
+            box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.2);
+        }
+
+        .field input.error {
+            border-color: var(--danger-color);
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 4px;
+        }
+
+        .features-list {
+            border: 1px solid var(--gray-border);
+            border-radius: 10px;
+        }
+
+        .feature-item {
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-border);
+            background: var(--white);
+        }
+
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+
+        .feature-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .feature-name {
+            font-weight: 600;
+            color: var(--gray-dark);
+        }
+
+        .feature-type {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .feature-type.type-polygon {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .feature-type.type-point {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .feature-type.type-linestring {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .feature-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding-top: 30px;
+            border-top: 1px solid var(--gray-border);
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        /* Export Button (Primary) */
+        .btn-primary {
+            background: var(--confirm-color);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(64, 145, 108, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            background: var(--success-hover);
+            box-shadow: 0 6px 20px rgba(64, 145, 108, 0.3);
+        }
+
+        /* Start Over Button (Secondary) */
+        .btn-secondary {
+            background: var(--danger-color);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(220, 101, 117, 0.2);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            background: var(--danger-hover);
+            box-shadow: 0 6px 20px rgba(220, 101, 117, 0.3);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-top: 3px solid var(--confirm-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Large screens */
+        @media (min-width: 1200px) {
+            .content-wrapper {
+                max-width: 1200px;
+            }
+        }
+
+        /* Medium screens */
+        @media (max-width: 1024px) {
+            body {
+                padding: 15px;
+            }
+            
+            .content-wrapper {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .language-selector {
+                top: 15px;
+                right: 15px;
+            }
+        }
+
+        /* Small screens */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px 15px 15px 15px;
+                min-height: 120px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-top: 10px;
+                margin-bottom: 8px;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .field-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-wrapper {
+                padding: 10px;
+            }
+            
+            .upload-area {
+                padding: 40px 20px;
+            }
+            
+            .upload-btn {
+                min-height: 44px;
+            }
+            
+                        
+            .language-selector {
+                position: static;
+                justify-content: center;
+                margin-bottom: 5px;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+                margin-top: 5px;
+            }
+            
+            .header p {
+                font-size: 0.9rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .upload-area {
+                width: calc(100% - 20px);
+                margin: 10px;
+                padding: 30px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="header">
+                <div class="language-selector">
+                    <label for="languageSelect" aria-label="Select language">🌐</label>
+                    <select id="languageSelect" aria-label="Language selection">
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="pt">Português</option>
+                    </select>
+                </div>
+                <h1 data-i18n="title">GeoRoots KML</h1>
+                <p data-i18n="subtitle">Convert KML files to GeoJSON for EU Deforestation Regulation compliance</p>
+                <p data-i18n="privacy" class="small-print">Your file and any of its content is only processed locally in your browser and none of your information is sent to GeoRoots or anyone else.</p>
+                <p data-i18n="license" class="small-print">This software is free, released under GPLv3 open source license, see source code for full disclaimer.</p>
+                <p class="small-print"><span data-i18n="downloadLatest">Download latest version and other tools at</span> <a href="https://georoots.eu/">https://georoots.eu/</a></p>
+            </div>
+            
+            <div class="content-wrapper">
+
+                <div class="main-content">
+                    <!-- Upload View -->
+                    <div id="uploadView" class="upload-view">
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <div class="upload-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                    <path d="M12,12L16,16H13.5V19H10.5V16H8L12,12Z"/>
+                                </svg>
+                            </div>
+                            <div class="upload-text" data-i18n="dropFile">Drag and drop your KML file here</div>
+                            <div style="margin: 20px 0; color: #94a3b8;" data-i18n="orText">or</div>
+                            <button class="upload-btn" data-i18n="selectFile">Select KML File</button>
+                        </div>
+                        <input type="file" id="fileInput" class="file-input" accept=".kml" />
+                    </div>
+
+                    <!-- Processing View -->
+                    <div id="processingView" class="processing-view hidden">
+                        <div class="form-section">
+                            <div class="form-title" data-i18n="globalSettings">Global Settings</div>
+                            <div class="global-fields">
+                                <div class="field-group">
+                                    <div class="field">
+                                        <label for="countryCode" data-i18n="countryCodeLabel">Country Code (2 letters, optional)</label>
+                                        <input type="text" id="countryCode" maxlength="2" data-i18n-placeholder="countryCodePlaceholder" placeholder="e.g., BR, CO, US" />
+                                        <div class="error-message" id="countryError"></div>
+                                    </div>
+                                    <div class="field">
+                                        <label for="producerName" data-i18n="producerNameLabel">Producer Name</label>
+                                        <input type="text" id="producerName" data-i18n-placeholder="producerNamePlaceholder" placeholder="Enter producer name" />
+                                    </div>
+                                </div>
+                                <div class="toggle-container">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="individualProducerToggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span class="toggle-label" data-i18n="individualProducerToggle">Use individual producer names for each feature</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-title" data-i18n="featuresExtracted">Features Extracted</div>
+                            <div class="features-list" id="featuresList">
+                                <!-- Features will be populated here -->
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="resetForm()" data-i18n="startOver">Start Over</button>
+                            <button class="btn btn-primary" onclick="exportGeoJSON()">
+                                <span id="exportText" data-i18n="exportGeoJSON">Export GeoJSON</span>
+                                <span id="exportLoading" class="loading hidden"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Translation system for internationalization
+        let translations = {
+            en: {
+                title: "GeoRoots KML",
+                subtitle: "Convert KML files to GeoJSON for EU Deforestation Regulation compliance",
+                privacy: "Your file and any of its content is only processed locally in your browser and none of your information is sent to GeoRoots or anyone else.",
+                license: "This software is free, released under GPLv3 open source license, see source code for full disclaimer.",
+                downloadLatest: "Download latest version and other tools at",
+                dropFile: "Drag and drop your KML file here",
+                orText: "or",
+                selectFile: "Select KML File",
+                globalSettings: "Global Settings",
+                countryCodeLabel: "Country Code (2 letters, optional)",
+                countryCodePlaceholder: "e.g., BR, CO, US",
+                featuresExtracted: "Features Extracted",
+                startOver: "Start Over",
+                exportGeoJSON: "Export GeoJSON",
+                placeReference: "Place Reference",
+                areaHa: "Area [ha]",
+                additionalInfo: "Additional Information",
+                additionalInfoPlaceholder: "Optional (omitted if empty)",
+                areaDefaultPlaceholder: "Defaults to 1 if empty",
+                pleaseSelectValidKML: "Please select a valid KML file.",
+                errorParsingKML: "Error parsing KML file: ",
+                invalidKMLFormat: "Invalid KML file format",
+                noValidFeaturesFound: "No valid features found in the KML file.",
+                unnamedFeature: "Unnamed Feature",
+                pleaseFixCountryCodeError: "Please fix the country code error. It must be 2 letters if provided.",
+                pleaseFixAreaValidationErrors: "Please fix all area validation errors before exporting.",
+                mustBeExactly2Letters: "Must be exactly 2 letters.",
+                mustBe2Letters: "Must be 2 letters.",
+                pleaseEnterValidNumber: "Please enter a valid number",
+                                 areaCannotBeNegative: "Area cannot be negative",
+                 areasOver4HaMustBePolygons: "Areas > 4 ha must be polygons",
+                 producerNameLabel: "Producer Name",
+                 producerNamePlaceholder: "Enter producer name",
+                 individualProducerToggle: "Use individual producer names for each feature",
+                geometryTypePoint: "Point",
+                geometryTypePolygon: "Polygon",
+                geometryTypeLineString: "LineString"
+            },
+            es: {
+                title: "GeoRoots KML",
+                subtitle: "Convierte archivos KML a GeoJSON para cumplimiento de la Regulación de Deforestación de la UE",
+                privacy: "Tu archivo y todo su contenido se procesa únicamente localmente en tu navegador y ninguna de tu información se envía a GeoRoots o a nadie más.",
+                license: "Este software es gratuito, liberado bajo licencia de código abierto GPLv3, ver código fuente para descargo completo de responsabilidad.",
+                downloadLatest: "Descarga la última versión y otras herramientas en",
+                dropFile: "Arrastra y suelta tu archivo KML aquí",
+                orText: "o",
+                selectFile: "Seleccionar Archivo KML",
+                globalSettings: "Configuración Global",
+                countryCodeLabel: "Código de País (2 letras, opcional)",
+                countryCodePlaceholder: "ej., BR, CO, US",
+                featuresExtracted: "Características Extraídas",
+                startOver: "Comenzar de Nuevo",
+                exportGeoJSON: "Exportar GeoJSON",
+                placeReference: "Referencia del Lugar",
+                areaHa: "Área [ha]",
+                additionalInfo: "Información Adicional",
+                additionalInfoPlaceholder: "Opcional (omitido si está vacío)",
+                areaDefaultPlaceholder: "Por defecto 1 si está vacío",
+                pleaseSelectValidKML: "Por favor selecciona un archivo KML válido.",
+                errorParsingKML: "Error al analizar archivo KML: ",
+                invalidKMLFormat: "Formato de archivo KML inválido",
+                noValidFeaturesFound: "No se encontraron características válidas en el archivo KML.",
+                unnamedFeature: "Característica Sin Nombre",
+                pleaseFixCountryCodeError: "Por favor corrige el error del código de país. Debe ser 2 letras si se proporciona.",
+                pleaseFixAreaValidationErrors: "Por favor corrige todos los errores de validación de área antes de exportar.",
+                mustBeExactly2Letters: "Debe ser exactamente 2 letras.",
+                mustBe2Letters: "Debe ser 2 letras.",
+                pleaseEnterValidNumber: "Por favor ingresa un número válido",
+                                 areaCannotBeNegative: "El área no puede ser negativa",
+                 areasOver4HaMustBePolygons: "Las áreas > 4 ha deben ser polígonos",
+                 producerNameLabel: "Nombre del Productor",
+                 producerNamePlaceholder: "Ingrese el nombre del productor",
+                 individualProducerToggle: "Usar nombres de productor individuales para cada característica",
+                geometryTypePoint: "Punto",
+                geometryTypePolygon: "Polígono",
+                geometryTypeLineString: "Línea"
+            },
+            pt: {
+                title: "GeoRoots KML",
+                subtitle: "Converte arquivos KML para GeoJSON para conformidade com a Regulamentação de Desflorestação da UE",
+                privacy: "Seu arquivo e todo seu conteúdo é processado apenas localmente no seu navegador e nenhuma de suas informações é enviada para GeoRoots ou qualquer outra pessoa.",
+                license: "Este software é gratuito, liberado sob licença de código aberto GPLv3, veja código fonte para descargo completo de responsabilidade.",
+                downloadLatest: "Baixe a versão mais recente e outras ferramentas em",
+                dropFile: "Arraste e solte seu arquivo KML aqui",
+                orText: "ou",
+                selectFile: "Selecionar Arquivo KML",
+                globalSettings: "Configurações Globais",
+                countryCodeLabel: "Código do País (2 letras, opcional)",
+                countryCodePlaceholder: "ex., BR, CO, US",
+                featuresExtracted: "Características Extraídas",
+                startOver: "Começar de Novo",
+                exportGeoJSON: "Exportar GeoJSON",
+                placeReference: "Referência do Local",
+                areaHa: "Área [ha]",
+                additionalInfo: "Informação Adicional",
+                additionalInfoPlaceholder: "Opcional (omitido se vazio)",
+                areaDefaultPlaceholder: "Padrão 1 se vazio",
+                pleaseSelectValidKML: "Por favor selecione um arquivo KML válido.",
+                errorParsingKML: "Erro ao analisar arquivo KML: ",
+                invalidKMLFormat: "Formato de arquivo KML inválido",
+                noValidFeaturesFound: "Nenhuma característica válida encontrada no arquivo KML.",
+                unnamedFeature: "Característica Sem Nome",
+                pleaseFixCountryCodeError: "Por favor corrija o erro do código do país. Deve ser 2 letras se fornecido.",
+                pleaseFixAreaValidationErrors: "Por favor corrija todos os erros de validação de área antes de exportar.",
+                mustBeExactly2Letters: "Deve ser exatamente 2 letras.",
+                mustBe2Letters: "Deve ser 2 letras.",
+                pleaseEnterValidNumber: "Por favor insira um número válido",
+                                 areaCannotBeNegative: "A área não pode ser negativa",
+                 areasOver4HaMustBePolygons: "Áreas > 4 ha devem ser polígonos",
+                 producerNameLabel: "Nome do Produtor",
+                 producerNamePlaceholder: "Digite o nome do produtor",
+                 individualProducerToggle: "Usar nomes de produtor individuais para cada característica",
+                geometryTypePoint: "Ponto",
+                geometryTypePolygon: "Polígono",
+                geometryTypeLineString: "Linha"
+            }
+        };
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Initialize variables
+            let parsedFeatures = [];
+            let currentFileName = '';
+            
+            // Make them globally accessible
+            window.parsedFeatures = parsedFeatures;
+            window.currentFileName = currentFileName;
+            
+            setupEventListeners();
+            initializeLanguage();
+        }
+
+        // Translation system functions
+        function initializeLanguage() {
+            const savedLanguage = localStorage.getItem('language') || 'en';
+            document.getElementById('languageSelect').value = savedLanguage;
+            updateTranslations(savedLanguage);
+            
+            // Add language change event listener
+            document.getElementById('languageSelect').addEventListener('change', function() {
+                const newLanguage = this.value;
+                localStorage.setItem('language', newLanguage);
+                updateTranslations(newLanguage);
+            });
+        }
+
+        function getTranslatedGeometryType(geometryType, language) {
+            const typeMap = {
+                'Point': 'geometryTypePoint',
+                'Polygon': 'geometryTypePolygon',
+                'LineString': 'geometryTypeLineString'
+            };
+            
+            const translationKey = typeMap[geometryType];
+            if (translationKey && translations[language] && translations[language][translationKey]) {
+                return translations[language][translationKey];
+            }
+            
+            return geometryType; // Fallback to original if translation not found
+        }
+
+        function updateTranslations(language) {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[language] && translations[language][key]) {
+                    element.textContent = translations[language][key];
+                }
+            });
+
+            // Handle placeholders
+            const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholderElements.forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (translations[language] && translations[language][key]) {
+                    element.placeholder = translations[language][key];
+                }
+            });
+
+            // Re-render features if they exist to update dynamic content
+            if (window.parsedFeatures && window.parsedFeatures.length > 0) {
+                renderFeatures();
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Setup drag and drop
+            const uploadArea = document.querySelector('.upload-area');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+                         // Country code input event listener
+             document.getElementById('countryCode').addEventListener('input', function() {
+                 this.value = this.value.toUpperCase();
+                 validateCountryCode();
+             });
+
+             // Producer name toggle event listener
+             document.getElementById('individualProducerToggle').addEventListener('change', function() {
+                 toggleProducerNameFields(this.checked);
+             });
+        }
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.kml')) {
+                alert(translations[document.getElementById('languageSelect').value]?.pleaseSelectValidKML || 'Please select a valid KML file.');
+                return;
+            }
+
+            window.currentFileName = file.name.replace('.kml', '');
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    parseKML(e.target.result);
+                } catch (error) {
+                    const currentLang = document.getElementById('languageSelect').value;
+                    alert(translations[currentLang]?.errorParsingKML || 'Error parsing KML file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseKML(kmlContent) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(kmlContent, 'text/xml');
+            
+            if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                const currentLang = document.getElementById('languageSelect').value;
+                throw new Error(translations[currentLang]?.invalidKMLFormat || 'Invalid KML file format');
+            }
+
+            window.parsedFeatures = [];
+            
+            const placemarks = xmlDoc.getElementsByTagName('Placemark');
+            
+            for (let i = 0; i < placemarks.length; i++) {
+                const placemark = placemarks[i];
+                const feature = parsePlacemark(placemark);
+                if (feature) {
+                    window.parsedFeatures.push(feature);
+                }
+            }
+
+            if (window.parsedFeatures.length === 0) {
+                const currentLang = document.getElementById('languageSelect').value;
+                alert(translations[currentLang]?.noValidFeaturesFound || 'No valid features found in the KML file.');
+                return;
+            }
+
+            showProcessingView();
+        }
+
+        function parsePlacemark(placemark) {
+            const nameElement = placemark.getElementsByTagName('name')[0];
+            const currentLang = document.getElementById('languageSelect').value;
+            const name = nameElement ? nameElement.textContent.trim() : (translations[currentLang]?.unnamedFeature || 'Unnamed Feature');
+            
+            let geometry = null;
+            let geometryType = '';
+            let area = null;
+
+            const point = placemark.getElementsByTagName('Point')[0];
+            if (point) {
+                const coordinates = point.getElementsByTagName('coordinates')[0];
+                if (coordinates) {
+                    const coords = parseCoordinates(coordinates.textContent.trim());
+                    if (coords.length > 0) {
+                        geometry = { type: 'Point', coordinates: coords[0] };
+                        geometryType = 'Point';
+                    }
+                }
+            }
+
+            const polygon = placemark.getElementsByTagName('Polygon')[0];
+            if (polygon && !geometry) {
+                const outerBoundary = polygon.getElementsByTagName('outerBoundaryIs')[0];
+                if (outerBoundary) {
+                    const linearRing = outerBoundary.getElementsByTagName('LinearRing')[0];
+                    if (linearRing) {
+                        const coordinates = linearRing.getElementsByTagName('coordinates')[0];
+                        if (coordinates) {
+                            const coords = parseCoordinates(coordinates.textContent.trim());
+                            if (coords.length > 2) {
+                                geometry = { type: 'Polygon', coordinates: [coords] };
+                                geometryType = 'Polygon';
+                                area = calculatePolygonArea(coords);
+                            }
+                        }
+                    }
+                }
+            }
+
+            const lineString = placemark.getElementsByTagName('LineString')[0];
+            if (lineString && !geometry) {
+                const coordinates = lineString.getElementsByTagName('coordinates')[0];
+                if (coordinates) {
+                    const coords = parseCoordinates(coordinates.textContent.trim());
+                    if (coords.length > 1) {
+                        geometry = { type: 'LineString', coordinates: coords };
+                        geometryType = 'LineString';
+                    }
+                }
+            }
+
+            if (!geometry) return null;
+
+            return { name, geometry, geometryType, area };
+        }
+
+        function parseCoordinates(coordString) {
+            const coords = [];
+            const lines = coordString.split(/\s+/);
+            
+            for (const line of lines) {
+                if (line.trim()) {
+                    const parts = line.trim().split(',');
+                    if (parts.length >= 2) {
+                        const lon = parseFloat(parts[0]);
+                        const lat = parseFloat(parts[1]);
+                        if (!isNaN(lon) && !isNaN(lat)) {
+                            coords.push([lon, lat]);
+                        }
+                    }
+                }
+            }
+            return coords;
+        }
+
+
+        function calculatePolygonArea(coordinates) {
+            if (!coordinates || coordinates.length < 3) {
+                return null;
+            }
+
+            let area = 0;
+            let avgLat = 0;
+            const n = coordinates.length;
+
+            for (let i = 0; i < n - 1; i++) {
+                const p1 = coordinates[i];
+                const p2 = coordinates[i + 1];
+                
+                area += (p1[0] * p2[1] - p2[0] * p1[1]);
+                
+                avgLat += p1[1];
+            }
+            
+            area = Math.abs(area / 2);
+            avgLat = avgLat / (n - 1);
+
+            const latRad = avgLat * (Math.PI / 180);
+
+            const areaInMeters = area * (111132.954 * (111320 * Math.cos(latRad)));
+
+            const hectares = areaInMeters / 10000;
+
+            return hectares > 0.01 ? Math.round(hectares * 100) / 100 : null;
+        }
+
+        function showProcessingView() {
+            document.getElementById('uploadView').classList.add('hidden');
+            document.getElementById('processingView').classList.remove('hidden');
+            renderFeatures();
+        }
+
+        function renderFeatures() {
+            const featuresList = document.getElementById('featuresList');
+            featuresList.innerHTML = '';
+            const currentLang = document.getElementById('languageSelect').value;
+            
+            window.parsedFeatures.forEach((feature, index) => {
+                const featureDiv = document.createElement('div');
+                featureDiv.className = 'feature-item';
+                featureDiv.innerHTML = `
+                    <div class="feature-header">
+                        <div class="feature-name">${feature.name}</div>
+                        <div class="feature-type type-${feature.geometryType.toLowerCase()}">${getTranslatedGeometryType(feature.geometryType, currentLang)}</div>
+                    </div>
+                    <div class="feature-fields">
+                        <div class="field">
+                            <label>${translations[currentLang]?.placeReference || 'Place Reference'}</label>
+                            <input type="text" id="placeRef_${index}" value="${feature.name}" />
+                        </div>
+                        <div class="field">
+                            <label>${translations[currentLang]?.areaHa || 'Area [ha]'}</label>
+                            <input type="number" id="area_${index}" step="0.01" min="0" 
+                                   value="${feature.area || ''}" placeholder="${translations[currentLang]?.areaDefaultPlaceholder || 'Defaults to 1 if empty'}" />
+                            <div class="error-message" id="areaError_${index}"></div>
+                        </div>
+                        <div class="field">
+                            <label>${translations[currentLang]?.producerNameLabel || 'Producer Name'}</label>
+                            <input type="text" id="producerName_${index}" placeholder="${translations[currentLang]?.producerNamePlaceholder || 'Enter producer name'}" />
+                        </div>
+                        <div class="field">
+                            <label>${translations[currentLang]?.additionalInfo || 'Additional Information'}</label>
+                            <input type="text" id="additionalInfo_${index}" placeholder="${translations[currentLang]?.additionalInfoPlaceholder || 'Optional (omitted if empty)'}" />
+                        </div>
+                    </div>
+                `;
+                featuresList.appendChild(featureDiv);
+                
+                                 const areaInput = document.getElementById(`area_${index}`);
+                 areaInput.addEventListener('input', () => validateArea(index));
+                 
+                 // Add producer name field to disabled state initially
+                 const producerNameInput = document.getElementById(`producerName_${index}`);
+                 producerNameInput.parentElement.classList.add('disabled');
+            });
+        }
+
+        function validateArea(index) {
+            const areaInput = document.getElementById(`area_${index}`);
+            const errorDiv = document.getElementById(`areaError_${index}`);
+            const area = parseFloat(areaInput.value);
+            const currentLang = document.getElementById('languageSelect').value;
+            
+            errorDiv.textContent = '';
+            areaInput.classList.remove('error');
+            
+            if (areaInput.value && isNaN(area)) {
+                errorDiv.textContent = translations[currentLang]?.pleaseEnterValidNumber || 'Please enter a valid number';
+                areaInput.classList.add('error');
+                return false;
+            }
+            
+            if (area < 0) {
+                errorDiv.textContent = translations[currentLang]?.areaCannotBeNegative || 'Area cannot be negative';
+                areaInput.classList.add('error');
+                return false;
+            }
+            
+            if (area > 4 && window.parsedFeatures[index].geometryType !== 'Polygon') {
+                errorDiv.textContent = translations[currentLang]?.areasOver4HaMustBePolygons || 'Areas > 4 ha must be polygons';
+                areaInput.classList.add('error');
+                return false;
+            }
+            
+            return true;
+        }
+
+                 function toggleProducerNameFields(useIndividual) {
+             const globalProducerInput = document.getElementById('producerName');
+             const individualProducerInputs = document.querySelectorAll('[id^="producerName_"]');
+             
+             if (useIndividual) {
+                 // Enable individual fields, disable global field
+                 globalProducerInput.disabled = true;
+                 globalProducerInput.parentElement.classList.add('disabled');
+                 
+                 individualProducerInputs.forEach(input => {
+                     input.disabled = false;
+                     input.parentElement.classList.remove('disabled');
+                 });
+             } else {
+                 // Enable global field, disable individual fields
+                 globalProducerInput.disabled = false;
+                 globalProducerInput.parentElement.classList.remove('disabled');
+                 
+                 individualProducerInputs.forEach(input => {
+                     input.disabled = true;
+                     input.parentElement.classList.add('disabled');
+                 });
+             }
+         }
+
+         function validateCountryCode() {
+             const countryInput = document.getElementById('countryCode');
+             const errorDiv = document.getElementById('countryError');
+             const countryCode = countryInput.value;
+             const currentLang = document.getElementById('languageSelect').value;
+             
+             errorDiv.textContent = '';
+             countryInput.classList.remove('error');
+
+             if (countryCode && countryCode.length !== 2) {
+                 errorDiv.textContent = translations[currentLang]?.mustBeExactly2Letters || 'Must be exactly 2 letters.';
+                 countryInput.classList.add('error');
+                 return false;
+             }
+
+             if (countryCode && !/^[a-zA-Z]{2}$/.test(countryCode)) {
+                 errorDiv.textContent = translations[currentLang]?.mustBe2Letters || 'Must be 2 letters.';
+                 countryInput.classList.add('error');
+                 return false;
+             }
+             
+             return true;
+         }
+
+        function exportGeoJSON() {
+            const currentLang = document.getElementById('languageSelect').value;
+            
+            if (!validateCountryCode()) {
+                alert(translations[currentLang]?.pleaseFixCountryCodeError || 'Please fix the country code error. It must be 2 letters if provided.');
+                return;
+            }
+            
+            let hasErrors = false;
+            for (let i = 0; i < window.parsedFeatures.length; i++) {
+                if (!validateArea(i)) {
+                    hasErrors = true;
+                }
+            }
+            
+            if (hasErrors) {
+                alert(translations[currentLang]?.pleaseFixAreaValidationErrors || 'Please fix all area validation errors before exporting.');
+                return;
+            }
+            
+            document.getElementById('exportText').classList.add('hidden');
+            document.getElementById('exportLoading').classList.remove('hidden');
+            
+                         const countryCode = document.getElementById('countryCode').value.toUpperCase();
+             const useIndividualProducer = document.getElementById('individualProducerToggle').checked;
+             const globalProducerName = document.getElementById('producerName').value.trim();
+             const features = [];
+             
+             window.parsedFeatures.forEach((feature, index) => {
+                 const placeRef = document.getElementById(`placeRef_${index}`).value;
+                 const areaValue = document.getElementById(`area_${index}`).value;
+                 const area = areaValue.trim() === '' ? 1 : parseFloat(areaValue);
+                 const additionalInfo = document.getElementById(`additionalInfo_${index}`).value.trim();
+                 
+                 // Get producer name based on toggle state
+                 let producerName = '';
+                 if (useIndividualProducer) {
+                     producerName = document.getElementById(`producerName_${index}`).value.trim();
+                 } else {
+                     producerName = globalProducerName;
+                 }
+                 
+                 const properties = {
+                     ProductionPlace: placeRef,
+                     ProducerCountry: countryCode,
+                     Area: area
+                 };
+
+                 if (producerName) {
+                     properties.ProducerName = producerName;
+                 }
+
+                 if (additionalInfo) {
+                     properties.AdditionalInfo = additionalInfo;
+                 }
+                
+                const geoJsonFeature = {
+                    type: 'Feature',
+                    geometry: feature.geometry,
+                    properties: properties
+                };
+                
+                features.push(geoJsonFeature);
+            });
+            
+            const geoJson = {
+                type: 'FeatureCollection',
+                features: features
+            };
+            
+            const blob = new Blob([JSON.stringify(geoJson, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${window.currentFileName}_deforestation_regulation.geojson`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            setTimeout(() => {
+                document.getElementById('exportText').classList.remove('hidden');
+                document.getElementById('exportLoading').classList.add('hidden');
+            }, 1000);
+        }
+
+        function resetForm() {
+            window.parsedFeatures = [];
+            window.currentFileName = '';
+            document.getElementById('uploadView').classList.remove('hidden');
+            document.getElementById('processingView').classList.add('hidden');
+            document.getElementById('fileInput').value = '';
+            document.getElementById('countryCode').value = '';
+            document.getElementById('producerName').value = '';
+            document.getElementById('individualProducerToggle').checked = false;
+            document.getElementById('countryError').textContent = '';
+            document.getElementById('countryCode').classList.remove('error');
+             
+            // Reset toggle state
+            toggleProducerNameFields(false);
+        }
+
+
+    </script>
+</body>
+</html>
